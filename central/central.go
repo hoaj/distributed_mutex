@@ -19,11 +19,12 @@ func (s *Server) RequestToken(ctx context.Context, node *proto.Node) (*proto.Tok
 	NodeinQueue := make(chan int)
 	go func() {
 		s.queue <- NodeinQueue // Move channel into queue
+		log.Printf("Node: %v got enqueued\n", node.GetId())
 		go func() {
 			if !s.inCS {
 				nCh := <-s.queue // remove from queue
 				c := <-nCh       // Confirm removement from queue to release line 33.
-				log.Printf("Node: %v got dequed\n", c)
+				log.Printf("Node: %v got dequeued\n", c)
 			}
 
 		}()
