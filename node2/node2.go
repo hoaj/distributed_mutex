@@ -24,9 +24,10 @@ func main() {
 	for {
 		c.RequestToken(context.Background(), &proto.Node{Id: id}) // sync operation
 		log.Printf("Node %d entered CS", id)
-		time.Sleep(2 * time.Second)
+		time.Sleep(2 * time.Second) // In CS
 		log.Printf("Node %d left CS", id)
-		c.ReturnToken(context.Background(), &proto.Token{}) // sync operation
+		c.ReturnToken(context.Background(), &proto.Token{From: id}) // sync operation
+		time.Sleep(10 * time.Second)
 	}
 
 }

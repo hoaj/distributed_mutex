@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"log"
 	"net"
 
@@ -12,25 +11,39 @@ import (
 
 type Server struct {
 	proto.UnimplementedCentralServer
-	queue chan int64
-	inCS  chan int64
+	queue chan chan int
+	inCS  bool
 }
 
-func (s *Server) requestToken(ctx context.Context, node *proto.Node) (*proto.Token, error) {
-	s.queue <- node.GetId()
-	s.inCS <- <-s.queue
-	return &proto.Token{}, errors.New("requestToken failed")
+func (s *Server) RequestToken(ctx context.Context, node *proto.Node) (*proto.Token, error) {
+	NodeinQueue := make(chan int)
+	go func() {
+		s.queue <- NodeinQueue // Move channel into queue
+		go func() {
+			if !s.inCS {
+				nCh := <-s.queue // remove from queue
+				c := <-nCh       // Confirm removement from queue to release line 33.
+				log.Printf("Node: %v got dequed\n", c)
+			}
+
+		}()
+	}()
+	NodeinQueue <- int(node.GetId()) // Waiting in queue for release confirmation
+	s.inCS = true
+	log.Printf("Node %d just entered the CS", node.GetId())
+	return &proto.Token{}, nil
 }
 
-func (s *Server) returnToken(ctx context.Context, node *proto.Token) (*proto.Ack, error) {
-	<-s.inCS
-	return &proto.Ack{}, errors.New("requestToken failed")
+func (s *Server) ReturnToken(ctx context.Context, node *proto.Token) (*proto.Ack, error) {
+	s.inCS = false
+	log.Printf("Node %d just left the CS", node.GetFrom())
+	return &proto.Ack{}, nil
 }
 
 func newServer() *Server {
 	return &Server{
-		inCS:  make(chan int64),
-		queue: make(chan int64, 3),
+		inCS:  false,
+		queue: make(chan (chan int), 3),
 	}
 }
 
@@ -41,6 +54,7 @@ func main() {
 	}
 	grpcServer := grpc.NewServer()
 	proto.RegisterCentralServer(grpcServer, newServer())
+
 	if err := grpcServer.Serve(list); err != nil {
 		log.Fatalf("Failed to serve %v", err)
 	}

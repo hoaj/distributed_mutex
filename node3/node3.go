@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	id int64 = 1
+	id int64 = 3
 )
 
 func main() {
@@ -24,10 +24,10 @@ func main() {
 	for {
 		c.RequestToken(context.Background(), &proto.Node{Id: id}) // sync operation
 		log.Printf("Node %d entered CS", id)
-		time.Sleep(2 * time.Second) // In CS
+		time.Sleep(6 * time.Second) // In CS
 		log.Printf("Node %d left CS", id)
 		c.ReturnToken(context.Background(), &proto.Token{From: id}) // sync operation
-		time.Sleep(10 * time.Second)
+		time.Sleep(2 * time.Second)
 	}
 
 }
