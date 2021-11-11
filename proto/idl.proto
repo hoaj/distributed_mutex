@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package proto;
+option go_package = "./;proto";
+
+service Central {
+    rpc requestToken (Node) returns (Token) {}
+    rpc returnToken (Token) returns (Ack) {}
+}
+
+message Node {
+    int64 id = 1;
+}
+
+message Token {
+}
+
+message Ack { 
+}
