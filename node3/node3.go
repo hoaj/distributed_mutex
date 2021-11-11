@@ -22,12 +22,12 @@ func main() {
 	c := proto.NewCentralClient(conn)
 
 	for {
-		c.RequestToken(context.Background(), &proto.Node{Id: id}) // sync operation
-		log.Printf("Node %d entered CS", id)
-		time.Sleep(6 * time.Second) // In CS
-		log.Printf("Node %d left CS", id)
-		c.ReturnToken(context.Background(), &proto.Token{From: id}) // sync operation
-		time.Sleep(2 * time.Second)
+		r1, _ := c.RequestToken(context.Background(), &proto.Node{Id: id}) // sync operation
+		log.Printf("Node: %d entered CS", r1.GetFrom())
+		time.Sleep(2 * time.Second)                                          // In CS
+		r2, _ := c.ReturnToken(context.Background(), &proto.Token{From: id}) // sync operation
+		log.Printf("Node: %d left CS", r2.GetFrom())
+		time.Sleep(10 * time.Second)
 	}
 
 }

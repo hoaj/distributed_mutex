@@ -30,14 +30,14 @@ func (s *Server) RequestToken(ctx context.Context, node *proto.Node) (*proto.Tok
 	}()
 	NodeinQueue <- int(node.GetId()) // Waiting in queue for release confirmation
 	s.inCS = true
-	log.Printf("Node %d just entered the CS", node.GetId())
-	return &proto.Token{}, nil
+	log.Printf("Node: %d just entered the CS", node.GetId())
+	return &proto.Token{From: node.GetId()}, nil
 }
 
 func (s *Server) ReturnToken(ctx context.Context, node *proto.Token) (*proto.Ack, error) {
 	s.inCS = false
-	log.Printf("Node %d just left the CS", node.GetFrom())
-	return &proto.Ack{}, nil
+	log.Printf("Node: %d just left the CS", node.GetFrom())
+	return &proto.Ack{From: node.GetFrom()}, nil
 }
 
 func newServer() *Server {
