@@ -14,7 +14,6 @@ import (
 type Server struct {
 	proto.UnimplementedCentralServer
 	queue chan chan int
-	// inCS  bool
 }
 
 var mu sync.Mutex
