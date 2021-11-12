@@ -24,7 +24,7 @@ func main() {
 	for {
 		r1, _ := c.RequestToken(context.Background(), &proto.Node{Id: id})
 		log.Printf("Node: %d entered CS", r1.GetFrom())
-		time.Sleep(4 * time.Second)
+		time.Sleep(6 * time.Second)
 		r2, _ := c.ReturnToken(context.Background(), &proto.Token{From: id})
 		log.Printf("Node: %d left CS", r2.GetFrom())
 		time.Sleep(2 * time.Second) // Added 2 sec to better see switch between nodes in CS
