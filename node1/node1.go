@@ -22,10 +22,16 @@ func main() {
 	c := proto.NewCentralClient(conn)
 
 	for {
-		r1, _ := c.RequestToken(context.Background(), &proto.Node{Id: id})
+		r1, err := c.RequestToken(context.Background(), &proto.Node{Id: id})
+		if err != nil {
+			log.Fatalf("RequestToken failed: %s", err)
+		}
 		log.Printf("Node: %d entered CS", r1.GetFrom())
 		time.Sleep(6 * time.Second)
-		r2, _ := c.ReturnToken(context.Background(), &proto.Token{From: id})
+		r2, err := c.ReturnToken(context.Background(), &proto.Token{From: id})
+		if err != nil {
+			log.Fatalf("ReturnToken failed: %s", err)
+		}
 		log.Printf("Node: %d left CS", r2.GetFrom())
 		time.Sleep(2 * time.Second) // Added 2 sec to better see switch between nodes in CS
 	}
