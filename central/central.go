@@ -18,22 +18,21 @@ type Server struct {
 
 var mu sync.Mutex
 
+func (s *Server) Dequeue() {
+	for {
+		mu.Lock()                 // Only dequeues if unlocked.
+		NodeForQueue := <-s.queue // remove from queue
+		id := <-NodeForQueue      // Let RequestToken function move on
+		log.Printf("Node: %v got dequeued\n", id)
+	}
+}
+
 func (s *Server) RequestToken(ctx context.Context, node *proto.Node) (*proto.Token, error) {
-	NodeinQueue := make(chan int)
-	go func() {
-		s.queue <- NodeinQueue // Move "Node" into queue channel
-		log.Printf("Node: %v got enqueued\n", node.GetId())
-		go func() {
-			for {
-				mu.Lock()
-				NodeinQueue := <-s.queue // remove from queue channel
-				c := <-NodeinQueue       // Confirm removement from queue to release line 33.
-				log.Printf("Node: %v got dequeued\n", c)
-			}
-		}()
-	}()
-	NodeinQueue <- int(node.GetId()) // Waiting in queue for release confirmation
-	time.Sleep(time.Second)          // put in order to better see that the dequeue happens before entering CS.
+	NodeForQueue := make(chan int) // Representation of a node for the queue
+	log.Printf("Node: %v got enqueued\n", node.GetId())
+	s.queue <- NodeForQueue           // Move "Node" into queue channel
+	NodeForQueue <- int(node.GetId()) // Sync call. Waiting for release in function "Dequeue".
+	time.Sleep(time.Second)           // used to better see that only one node is in CS when using logs
 	log.Printf("Node: %d just entered the CS", node.GetId())
 	return &proto.Token{From: node.GetId()}, nil
 }
@@ -45,9 +44,11 @@ func (s *Server) ReturnToken(ctx context.Context, node *proto.Token) (*proto.Ack
 }
 
 func newServer() *Server {
-	return &Server{
+	s := &Server{
 		queue: make(chan (chan int), 3), // size of queue
 	}
+	go s.Dequeue()
+	return s
 }
 
 func main() {
